@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>치매 예방 사칙연산 게임</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap');
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            margin: 20px;
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+            line-height: 1.6;
+            position: relative;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #6fa3ef;
+            text-align: center;
+            font-size: 42px;
+            font-family: 'Jua', sans-serif;
+        }
+        .game-container {
+            text-align: center;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        .question {
+            font-size: 24px;
+            margin: 20px 0;
+            color: #333;
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 18px;
+            margin: 20px 0;
+            border: 2px solid #6fa3ef;
+            border-radius: 5px;
+            outline: none;
+        }
+        button {
+            padding: 15px 25px;
+            font-size: 25px;
+            background-color: #6fa3ef;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-family: 'Jua', sans-serif;
+        }
+        button:hover {
+            background-color: #9bc2f2;
+        }
+        .result {
+            font-size: 20px;
+            margin: 20px 0;
+            color: #333;
+        }
+        #timer {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 18px;
+            color: #6fa3ef;
+        }
+        .intro {
+            font-size: 18px;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>치매 예방 사칙연산 게임</h1>
+    <div class="intro" id="intro">
+    <span style="font-size: 22px; color: #333">
+        사칙연산 게임은 인지 기능을 자극하여
+        <br>집중력과 문제 해결 능력을 향상시키며,
+        <br>뇌 건강을 유지하고 치매 예방에 도움이 됩니다.
+        <br><br>자, 그럼 시작해볼까요?
+        <br><br>
+        <button onclick="startGame()">START!</button>
+    </div>
+    <div id="timer" style="display:none;">남은 시간: 30초</div>
+    <div class="game-container" id="game-container" style="display:none;">
+        <div id="question" class="question"></div>
+        <input type="text" id="answer" placeholder="답을 입력하세요" onkeydown="if(event.key === 'Enter') checkAnswer()">
+        <br>
+        <button onclick="checkAnswer()">제출</button>
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        let num1, num2, correctAnswer;
+        let currentProblem = 0;
+        const totalProblems = 15;
+        let startTime, interval;
+
+        function startGame() {
+            document.getElementById('intro').style.display = 'none';
+            document.getElementById('game-container').style.display = 'block';
+            document.getElementById('timer').style.display = 'block';
+            startTime = new Date();
+            interval = setInterval(updateTimer, 1000);
+            generateQuestion();
+        }
+
+        function updateTimer() {
+            const now = new Date();
+            const elapsedTime = Math.floor((now - startTime) / 1000);
+            const remainingTime = 30 - elapsedTime;
+            document.getElementById('timer').textContent = `남은 시간: ${remainingTime}초`;
+            if (remainingTime <= 0) {
+                clearInterval(interval);
+                endGame();
+            }
+        }
+
+        function generateQuestion() {
+            const operations = ['+', '-', '×', '÷'];
+            const operation = operations[Math.floor(Math.random() * operations.length)];
+
+            num1 = Math.floor(Math.random() * 10) + 1;
+            num2 = Math.floor(Math.random() * 10) + 1;
+
+            if (operation === '-' && num1 < num2) {
+                [num1, num2] = [num2, num1];
+            } else if (operation === '÷') {
+                correctAnswer = num1;
+                num1 = num1 * num2;
+            }
+
+            correctAnswer = {
+                '+': num1 + num2,
+                '-': num1 - num2,
+                '×': num1 * num2,
+                '÷': num1 / num2,
+            }[operation];
+
+            document.getElementById('question').textContent = `${num1} ${operation} ${num2} = ?`;
+            document.getElementById('answer').value = '';
+            document.getElementById('result').textContent = '';
+        }
+
+        function checkAnswer() {
+            const userAnswer = parseFloat(document.getElementById('answer').value);
+            const resultElement = document.getElementById('result');
+
+            if (userAnswer === correctAnswer) {
+                currentProblem++;
+                if (currentProblem >= totalProblems) {
+                    clearInterval(interval);
+                    endGame();
+                } else {
+                    resultElement.textContent = '정답입니다!';
+                    resultElement.style.color = 'green';
+                    setTimeout(generateQuestion, 1000);
+                }
+            } else {
+                resultElement.textContent = '틀렸습니다. 다시 시도하세요.';
+                resultElement.style.color = 'red';
+            }
+        }
+
+        function endGame() {
+            document.getElementById('question').textContent = '';
+            document.getElementById('answer').style.display = 'none';
+            document.querySelector('.game-container button').style.display = 'none';
+            const correctAnswers = currentProblem;
+            const resultElement = document.getElementById('result');
+
+            let message = '';
+            if (correctAnswers === 0) {
+                message = '조금 더 연습이 필요해요!';
+            } else if (correctAnswers <= 5) {
+                message = '괜찮아요, 더 노력해봐요!';
+            } else if (correctAnswers <= 10) {
+                message = '잘했어요!';
+            } else if (correctAnswers <= 14) {
+                message = '정말 잘했어요!';
+            } else {
+                message = '최고에요!';
+            }
+
+            resultElement.innerHTML = `<span style="font-size: 24px; color: #333">30초 안에 맞힌 문제 수: ${correctAnswers}개<br><br>${message}`;
+            const retryButton = document.createElement('button');
+            retryButton.textContent = '재도전?';
+            retryButton.onclick = () => location.reload();
+            document.querySelector('.game-container').appendChild(retryButton);
+        }
+    </script>
+</body>
+</html>
